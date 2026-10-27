@@ -1,0 +1,25 @@
+# Reusable subflow: open the first catalog product and add it to the cart.
+#
+# Assumes the app is on the Products catalog screen.
+# Leaves the app on the product details screen with the item added (cart badge = 1).
+#
+# The product title TextView is not the clickable target on this build, so we tap
+# the product image (productIV) by index. index 0 == the first card
+# ("Sauce Labs Backpack").
+appId: com.saucelabs.mydemoapp.android
+---
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/productTV"
+    text: "Products"
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/productIV"
+    index: 0
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/cartBt"
+    text: "Add to cart"
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/cartBt"
+    text: "Add to cart"
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/cartTV"
+    text: "1"

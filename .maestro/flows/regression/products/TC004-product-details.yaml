@@ -1,0 +1,35 @@
+# TC004 - Product Details (regression)
+#
+# Given the customer is on the product catalogue
+# When the first product is selected
+# Then the correct product details are displayed
+# And price, colour options and the add-to-cart control are visible
+appId: com.saucelabs.mydemoapp.android
+name: "TC004 - Product Details"
+tags:
+  - regression
+  - products
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/productTV"
+    text: "Products"
+# Product title is not clickable on this build; tap the product image by index.
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/productIV"
+    index: 0
+# Detail screen assertions.
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/productTV"
+    text: "Sauce Labs Backpack"
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/priceTV"
+    text: "$ 29.99"
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/colorRV"
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/cartBt"
+    text: "Add to cart"
+- assertVisible: "Product Highlights"
+- takeScreenshot: "TC004-product-details"

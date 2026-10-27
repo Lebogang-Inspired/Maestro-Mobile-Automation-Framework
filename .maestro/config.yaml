@@ -1,0 +1,21 @@
+# Maestro workspace configuration (discovered + validated against Maestro 2.12.0).
+# Lives at the root of the flows workspace (.maestro/). `maestro test .maestro/flows`
+# discovers every *.yaml under flows/ recursively.
+#
+# `flows` controls which files Maestro treats as runnable tests. We include only
+# the tests under flows/** and EXCLUDE the reusable subflows/ directory so that
+# subflows are never executed as standalone tests (they have no appId header on
+# their own run context and are meant to be composed via runFlow).
+
+flows:
+  - "flows/**"
+
+# Flows that match these patterns are never collected as top-level tests.
+# (Subflows live outside .maestro/ in ../subflows and are referenced by runFlow,
+#  so they are already excluded; this guard covers any helper placed inline.)
+excludeTags:
+  - subflow
+
+# Workspace-wide execution settings
+executionOrder:
+  continueOnFailure: true

@@ -1,0 +1,30 @@
+# ---------------------------------------------------------------------------
+# Secrets & environment
+# ---------------------------------------------------------------------------
+# Never commit real credentials. Only the tracked example is allowed.
+environments/.env
+environments/.env.*
+!environments/.env.example
+
+# ---------------------------------------------------------------------------
+# Test evidence / generated artifacts
+# ---------------------------------------------------------------------------
+# Generated per-run evidence is NOT committed unless explicitly approved.
+reports/*
+!reports/.gitkeep
+
+# Maestro's default local artifact/debug output
+.maestro/tests/
+~/.maestro/tests/
+*.mp4
+
+# ---------------------------------------------------------------------------
+# OS / editor noise
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+.idea/
+*.iml
+.vscode/

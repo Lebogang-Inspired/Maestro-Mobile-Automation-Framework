@@ -1,0 +1,42 @@
+# TC003 - Invalid Login / validation error (regression)
+#
+# Given the customer is on the login screen
+# When the login action is performed WITHOUT entering credentials
+# Then authentication fails
+# And the "Username is required" validation error is displayed
+#
+# IMPORTANT (verified behaviour on build 2.3.0): this app's login screen performs
+# client-side field validation only; submitting a well-formed email with a wrong
+# password still "logs in". The app's genuine, deterministic negative path is the
+# field-validation error shown when required fields are empty. We assert that real
+# error rather than inventing a "wrong password" rejection the app does not have.
+appId: com.saucelabs.mydemoapp.android
+name: "TC003 - Invalid Login (validation error)"
+tags:
+  - regression
+  - authentication
+  - negative
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/productTV"
+    text: "Products"
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/menuIV"
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/itemTV"
+    text: "Log In"
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/loginBtn"
+# Submit with empty fields to trigger validation.
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/loginBtn"
+# Authentication must NOT succeed: the login button is still on screen...
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/loginBtn"
+# ...and the real validation error is shown.
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/nameErrorTV"
+    text: "Username is required"
+- takeScreenshot: "TC003-validation-error"

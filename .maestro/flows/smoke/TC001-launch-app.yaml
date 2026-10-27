@@ -1,0 +1,25 @@
+# TC001 - Application Launch (smoke)
+#
+# Given the Sauce Labs My Demo App is installed
+# When the application is launched
+# Then the Products landing screen is displayed with product content visible
+#
+# This is the canary: if it fails, the environment/app is broken and the rest of
+# the suite is not worth running.
+appId: com.saucelabs.mydemoapp.android
+name: "TC001 - Application Launch"
+tags:
+  - smoke
+  - launch
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/productTV"
+    text: "Products"
+# Verify real catalog content rendered, not just the title bar.
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/titleTV"
+    text: "Sauce Labs Backpack"
+- assertVisible: "$ 29.99"
+- takeScreenshot: "TC001-landing-screen"

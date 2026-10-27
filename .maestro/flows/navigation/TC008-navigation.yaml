@@ -1,0 +1,47 @@
+# TC008 - Application Navigation (regression)
+#
+# Given the customer is on the application landing screen
+# When the customer navigates through drawer menu options
+# Then each expected screen is displayed
+# And the customer can return to the Products (Catalog) starting screen
+appId: com.saucelabs.mydemoapp.android
+name: "TC008 - Application Navigation"
+tags:
+  - regression
+  - navigation
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/productTV"
+    text: "Products"
+
+# --- Open drawer (reusable subflow, up 3 dirs to project root) ---
+- runFlow:
+    file: "../../../subflows/navigation/open-menu.yaml"
+
+# --- Navigate to WebView ---
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/itemTV"
+    text: "WebView"
+- assertVisible: "WebView"
+- takeScreenshot: "TC008-01-webview"
+
+# --- Navigate to Geo Location ---
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/menuIV"
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/itemTV"
+    text: "Geo Location"
+- takeScreenshot: "TC008-02-geolocation"
+
+# --- Return to the Catalog starting screen ---
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/menuIV"
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/itemTV"
+    text: "Catalog"
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/productTV"
+    text: "Products"
+- takeScreenshot: "TC008-03-back-to-catalog"

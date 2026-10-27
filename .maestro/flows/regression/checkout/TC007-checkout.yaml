@@ -1,0 +1,115 @@
+# TC007 - Checkout Journey (regression)
+#
+# Given the customer is logged in with an item in the cart
+# When the customer completes shipping and (synthetic) payment details
+# Then the "Checkout Complete" confirmation screen is displayed
+#
+# Uses SYNTHETIC test data only. No real transaction occurs (local demo app).
+# Composes the login and add-product subflows, then drives checkout end to end.
+#
+# Checkout requires authentication on this build, so we log in first.
+appId: com.saucelabs.mydemoapp.android
+name: "TC007 - Checkout Journey"
+tags:
+  - regression
+  - checkout
+  - e2e
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/productTV"
+    text: "Products"
+# --- Arrange: authenticate ---
+- runFlow:
+    file: "../../../../subflows/authentication/login.yaml"
+    env:
+      USERNAME: ${TEST_USERNAME}
+      PASSWORD: ${TEST_PASSWORD}
+# --- Arrange: add a product to the cart ---
+- runFlow:
+    file: "../../../../subflows/cart/add-product.yaml"
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/cartRL"
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/cartBt"
+    text: "Proceed To Checkout"
+- takeScreenshot: "TC007-01-cart"
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/cartBt"
+    text: "Proceed To Checkout"
+
+# --- Checkout step 1: shipping address ---
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/checkoutTitleTV"
+    text: "Checkout"
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/fullNameET"
+- inputText: ${SHIP_NAME}
+- hideKeyboard
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/address1ET"
+- inputText: ${SHIP_ADDRESS}
+- hideKeyboard
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/cityET"
+- inputText: ${SHIP_CITY}
+- hideKeyboard
+# Lower fields sit below the keyboard/fold: scroll them into view first.
+- scrollUntilVisible:
+    element:
+      id: "com.saucelabs.mydemoapp.android:id/zipET"
+    direction: DOWN
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/zipET"
+- inputText: ${SHIP_ZIP}
+- hideKeyboard
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/countryET"
+- inputText: ${SHIP_COUNTRY}
+- hideKeyboard
+- takeScreenshot: "TC007-02-shipping"
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/paymentBtn"
+    text: "To Payment"
+
+# --- Checkout step 2: payment (synthetic card) ---
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/enterPaymentMethodTV"
+    text: "Enter a payment method"
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/nameET"
+- inputText: ${CARD_NAME}
+- hideKeyboard
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/cardNumberET"
+- inputText: ${CARD_NUMBER}
+- hideKeyboard
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/expirationDateET"
+- inputText: ${CARD_EXPIRY}
+- hideKeyboard
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/securityCodeET"
+- inputText: ${CARD_CVV}
+- hideKeyboard
+- takeScreenshot: "TC007-03-payment"
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/paymentBtn"
+    text: "Review Order"
+
+# --- Checkout step 3: review order ---
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/paymentBtn"
+- takeScreenshot: "TC007-04-review"
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/paymentBtn"
+
+# --- Confirmation ---
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/completeTV"
+    text: "Checkout Complete"
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/thankYouTV"
+    text: "Thank you for your order"
+- takeScreenshot: "TC007-05-confirmation"

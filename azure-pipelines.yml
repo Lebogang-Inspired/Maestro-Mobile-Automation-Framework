@@ -1,0 +1,113 @@
+# =============================================================================
+# Azure DevOps pipeline for the Maestro Mobile Automation POC.
+#
+# ⚠️  UNVALIDATED TEMPLATE. This pipeline has NOT been executed on an Azure
+#     DevOps agent. It documents the intended CI approach.
+#
+# IMPORTANT constraints (do not ignore):
+#  * An Android emulator needs nested virtualization (KVM/HAXM). Microsoft-hosted
+#    agents generally CANNOT run a hardware-accelerated Android emulator reliably.
+#    You will most likely need a SELF-HOSTED agent (a macOS or Linux machine with
+#    Android SDK + an AVD, or a cloud device farm). Do not assume emulator support
+#    on every hosted agent.
+#  * This repo does NOT provision a device farm or a self-hosted runner. Wire one
+#    up and set the `pool` accordingly before enabling scheduled runs.
+#  * Committed tests run WITHOUT any AI agent / MCP. MCP is dev-only.
+# =============================================================================
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - .maestro/**
+      - subflows/**
+      - scripts/**
+      - azure-pipelines.yml
+
+# Use a self-hosted pool that has an Android emulator available.
+# Replace 'Android-Emulator-Pool' with your actual self-hosted pool name.
+pool:
+  name: 'Android-Emulator-Pool'
+  # For Microsoft-hosted (NO emulator — smoke/lint only), use instead:
+  # vmImage: 'macOS-latest'
+
+variables:
+  APP_ID: 'com.saucelabs.mydemoapp.android'
+  TARGET_ENV: 'POC'
+  # Secrets (TEST_USERNAME, TEST_PASSWORD, etc.) come from a linked variable
+  # group — never commit them. Create group 'maestro-poc-secrets' in Library.
+  # group: maestro-poc-secrets
+
+steps:
+  - checkout: self
+
+  # --- 1. Verify the toolchain -------------------------------------------------
+  - script: |
+      set -e
+      java -version
+      echo "Installing Maestro CLI..."
+      curl -fsSL https://get.maestro.mobile.dev | bash
+      export PATH="$HOME/.maestro/bin:$PATH"
+      maestro --version
+    displayName: 'Install & verify Java + Maestro'
+
+  # --- 2. Ensure an emulator/device is available -------------------------------
+  # On a self-hosted agent, boot or attach an AVD here, e.g.:
+  #   $ANDROID_HOME/emulator/emulator -avd <AVD> -no-window -no-audio &
+  #   adb wait-for-device
+  - script: |
+      set -e
+      export PATH="$HOME/Library/Android/sdk/platform-tools:$PATH"
+      adb wait-for-device
+      adb devices -l
+    displayName: 'Wait for Android device'
+
+  # --- 3. Install the app APK if not already present ---------------------------
+  # Supply the APK via a pipeline artifact / secure file. Skipped if preinstalled.
+  - script: |
+      set -e
+      export PATH="$HOME/Library/Android/sdk/platform-tools:$PATH"
+      if ! adb shell pm list packages | grep -q "$APP_ID"; then
+        echo "App not installed. Provide the APK and uncomment the install line."
+        # adb install -r "$(Pipeline.Workspace)/app/mydemoapp.apk"
+      fi
+    displayName: 'Ensure app is installed'
+
+  # --- 4. Run the suite with JUnit output --------------------------------------
+  - script: |
+      set -e
+      export PATH="$HOME/.maestro/bin:$HOME/Library/Android/sdk/platform-tools:$PATH"
+      mkdir -p "$(Build.ArtifactStagingDirectory)/junit"
+      maestro test \
+        -e TEST_USERNAME="$(TEST_USERNAME)" -e TEST_PASSWORD="$(TEST_PASSWORD)" \
+        -e SHIP_NAME="$(SHIP_NAME)" -e SHIP_ADDRESS="$(SHIP_ADDRESS)" \
+        -e SHIP_CITY="$(SHIP_CITY)" -e SHIP_ZIP="$(SHIP_ZIP)" \
+        -e SHIP_COUNTRY="$(SHIP_COUNTRY)" -e CARD_NAME="$(CARD_NAME)" \
+        -e CARD_NUMBER="$(CARD_NUMBER)" -e CARD_EXPIRY="$(CARD_EXPIRY)" \
+        -e CARD_CVV="$(CARD_CVV)" \
+        --format JUNIT --output "$(Build.ArtifactStagingDirectory)/junit/report.xml" \
+        --test-output-dir "$(Build.ArtifactStagingDirectory)/artifacts" \
+        --flatten-debug-output \
+        .maestro
+    displayName: 'Run Maestro suite (JUnit)'
+    # The task fails the step on non-zero exit, failing the build. Do not mask it.
+
+  # --- 5. Publish JUnit results ------------------------------------------------
+  - task: PublishTestResults@2
+    displayName: 'Publish test results'
+    condition: always()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '$(Build.ArtifactStagingDirectory)/junit/report.xml'
+      testRunTitle: 'Maestro POC — $(TARGET_ENV)'
+      failTaskOnFailedTests: true
+
+  # --- 6. Publish screenshots / recordings / logs as artifacts -----------------
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish evidence artifacts'
+    condition: always()
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)/artifacts'
+      ArtifactName: 'maestro-evidence'

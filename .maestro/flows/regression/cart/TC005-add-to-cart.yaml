@@ -1,0 +1,35 @@
+# TC005 - Add Product to Cart (regression)
+#
+# Given the customer is viewing an available product
+# When the product is added to the cart
+# Then the cart badge reflects 1 item
+# And the cart screen lists the selected product with the correct total
+#
+# Uses the reusable add-product subflow to open + add the first product.
+appId: com.saucelabs.mydemoapp.android
+name: "TC005 - Add Product to Cart"
+tags:
+  - regression
+  - cart
+---
+- launchApp:
+    clearState: true
+# --- reusable add-product subflow (up 4 dirs to project root) ---
+- runFlow:
+    file: "../../../../subflows/cart/add-product.yaml"
+# Open the cart and verify contents.
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/cartRL"
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/productTV"
+    text: "My Cart"
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/titleTV"
+    text: "Sauce Labs Backpack"
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/itemsTV"
+    text: "1 Items"
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/totalPriceTV"
+    text: "$ 29.99"
+- takeScreenshot: "TC005-product-added-to-cart"

@@ -1,0 +1,35 @@
+# TC006 - Remove Product from Cart (regression)
+#
+# Given a product has been added to the cart
+# When the customer removes the product
+# Then the cart no longer lists the product
+# And the cart badge no longer shows a count
+appId: com.saucelabs.mydemoapp.android
+name: "TC006 - Remove Product from Cart"
+tags:
+  - regression
+  - cart
+---
+- launchApp:
+    clearState: true
+# Arrange: add the first product using the reusable subflow.
+- runFlow:
+    file: "../../../../subflows/cart/add-product.yaml"
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/cartRL"
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/titleTV"
+    text: "Sauce Labs Backpack"
+# Act: remove the item.
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/removeBt"
+    text: "Remove Item"
+# Assert: the product row is gone and the cart badge is cleared.
+- assertNotVisible:
+    id: "com.saucelabs.mydemoapp.android:id/removeBt"
+- assertNotVisible:
+    id: "com.saucelabs.mydemoapp.android:id/titleTV"
+    text: "Sauce Labs Backpack"
+- assertNotVisible:
+    id: "com.saucelabs.mydemoapp.android:id/cartTV"
+- takeScreenshot: "TC006-cart-after-removal"

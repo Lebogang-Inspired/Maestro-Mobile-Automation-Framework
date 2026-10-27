@@ -1,0 +1,33 @@
+# Reusable subflow: log in with given credentials.
+#
+# Assumes the app is launched and on the Products screen (logged out).
+# Opens the drawer, taps "Log In", enters credentials and submits.
+#
+# Required env (passed by the caller via runFlow.env):
+#   USERNAME - login username
+#   PASSWORD - login password
+#
+# Why a subflow: login is needed by checkout (TC007) and is a candidate for any
+# future authenticated journey. Centralising it means a UI change to the login
+# screen is fixed in one place.
+appId: com.saucelabs.mydemoapp.android
+---
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/menuIV"
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/itemTV"
+    text: "Log In"
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/loginBtn"
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/nameET"
+- inputText: ${USERNAME}
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/passwordET"
+- inputText: ${PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/loginBtn"
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/productTV"
+    text: "Products"

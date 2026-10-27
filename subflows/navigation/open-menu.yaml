@@ -1,0 +1,11 @@
+# Reusable subflow: open the navigation drawer and confirm it is visible.
+#
+# The drawer's "Catalog" item is always present whether logged in or out, so we
+# assert on it as a stable signal that the drawer opened.
+appId: com.saucelabs.mydemoapp.android
+---
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/menuIV"
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/itemTV"
+    text: "Catalog"

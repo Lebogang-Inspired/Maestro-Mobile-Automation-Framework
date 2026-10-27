@@ -1,0 +1,12 @@
+# Reusable subflow: restore the app to a predictable known state.
+#
+# Stops and relaunches the app so every test starts from the same place
+# (Products catalog, empty cart, logged out). This is the cheapest reliable
+# reset for this build and keeps tests independent.
+appId: com.saucelabs.mydemoapp.android
+---
+- stopApp
+- launchApp
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/productTV"
+    text: "Products"

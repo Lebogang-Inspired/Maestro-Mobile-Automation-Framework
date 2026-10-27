@@ -1,0 +1,32 @@
+# TC002 - Valid Login (regression)
+#
+# Given the customer is on the login screen
+# When valid credentials are entered and submitted
+# Then the customer is authenticated and returned to the Products screen
+# And the drawer shows "Log Out" (authenticated state)
+#
+# Uses the reusable login subflow with credentials injected via env.
+appId: com.saucelabs.mydemoapp.android
+name: "TC002 - Valid Login"
+tags:
+  - regression
+  - authentication
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/productTV"
+    text: "Products"
+# --- reusable login subflow (path: up 4 dirs to project root, then subflows/) ---
+- runFlow:
+    file: "../../../../subflows/authentication/login.yaml"
+    env:
+      USERNAME: ${TEST_USERNAME}
+      PASSWORD: ${TEST_PASSWORD}
+# Authenticated proof: drawer now offers "Log Out" instead of "Log In".
+- tapOn:
+    id: "com.saucelabs.mydemoapp.android:id/menuIV"
+- assertVisible:
+    id: "com.saucelabs.mydemoapp.android:id/itemTV"
+    text: "Log Out"
+- takeScreenshot: "TC002-authenticated"
